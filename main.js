@@ -9,6 +9,11 @@ let level3Sprite = null;
 let level1bg;
 let suspectImgs1 = [];
 let suspectFaces1 = [];
+let suspectImgs2 = [];
+let suspectFaces2 = [];
+
+let level2BG;
+
 
 function preload() {
   level1BG = loadImage("assets/images/backgroundimagefixed.png");
@@ -19,6 +24,29 @@ function preload() {
   suspectFaces1[0] = loadImage("assets/images/miacalm.png");
   suspectFaces1[1] = loadImage("assets/images/dereknervous.png");
   suspectFaces1[2] = loadImage("assets/images/luisangry.png");
+
+// ------------------
+// LEVEL 2 IMAGES
+// ------------------
+level2BG = loadImage("assets/images/backgroundimagefixed.png");
+
+suspectImgs2[0] = loadImage("assets/images/taylor.png");
+suspectImgs2[1] = loadImage("assets/images/jordon.png");
+suspectImgs2[2] = loadImage("assets/images/avery.png");
+suspectImgs2[3] = loadImage("assets/images/morgan.png");
+
+suspectFaces2[0] = loadImage("assets/images/taylorcalm.png");
+suspectFaces2[1] = loadImage("assets/images/jordonnervous.png");
+suspectFaces2[2] = loadImage("assets/images/averyupset.png");
+suspectFaces2[3] = loadImage("assets/images/morgantired.png");
+
+level3BG = loadImage("assets/images/backgroundimagefixed.png");
+
+
+
+
+
+
 }
 
 function setup() {

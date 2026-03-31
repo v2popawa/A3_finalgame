@@ -154,6 +154,11 @@ function drawLevel3Portrait(x, y, suspect, drawW, drawH) {
 
 function drawLevel3() {
   background(38, 48, 60);
+if (level3BG) {
+  image(level3BG, 0, 0, width, height);
+} else {
+  background(38, 48, 60);
+}
 
   if (level3Stage === "intro") drawLevel3Intro();
   else if (level3Mode === "lineup") drawLevel3Lineup();

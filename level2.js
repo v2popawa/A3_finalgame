@@ -93,40 +93,35 @@ function isMouseOverLevel2Suspect(x, y, w, h) {
   );
 }
 
-function drawLevel2Portrait(x, y, suspect, drawW, drawH) {
+function drawLevel2Portrait(x, y, index, drawW, drawH) {
   const hovered = isMouseOverLevel2Suspect(x, y, drawW, drawH);
 
   push();
   imageMode(CENTER);
   rectMode(CENTER);
 
-  noFill();
-  strokeWeight(4);
+  let scale = hovered ? 1.05 : 1;
 
-  if (convictMode2) stroke(255, 110, 110);
-  else if (hovered) stroke(120, 210, 255);
-  else stroke(255);
-
-  rect(x, y, drawW + 12, drawH + 12, 14);
-
-  if (level2Sprite && level2Sprite.width > 0) {
-    const srcW = level2Sprite.width / 4;
-    const srcH = level2Sprite.height;
-    const sx = suspect.spriteIndex * srcW;
-    const sy = 0;
-
-    image(level2Sprite, x, y, drawW, drawH, sx, sy, srcW, srcH);
+  // draw image
+  if (suspectImgs2[index]) {
+    image(suspectImgs2[index], x, y, drawW * scale, drawH * scale);
   } else {
-    fill(160);
+    fill(200);
     noStroke();
     rect(x, y, drawW, drawH, 12);
   }
 
-  fill(255);
-  noStroke();
-  textAlign(CENTER, CENTER);
-  textSize(max(14, drawW * 0.11));
-  text(suspect.name, x, y + drawH * 0.62);
+  // hover outline
+  if (hovered) {
+    noFill();
+
+    if (convictMode2) stroke(255, 110, 110);
+    else stroke(120, 210, 255);
+
+    strokeWeight(4);
+     rect(x, y, drawW * scale, drawH * scale, 12);
+  }
+
   pop();
 }
 
@@ -161,6 +156,11 @@ function drawLevel2Lineup() {
   const positions = getLineupPositions(suspects2.length);
   const recordedCount = questioned2.filter(Boolean).length;
 
+ if (level2BG) {
+  image(level2BG, 0, 0, width, height);
+} else {
+  background(58, 72, 88);
+} 
   drawCaseHeader(
     "Level 2: Jewelry Theft",
     convictMode2
@@ -180,8 +180,29 @@ function drawLevel2Lineup() {
   pop();
 
   for (let i = 0; i < suspects2.length; i++) {
-    drawLevel2Portrait(positions[i].x, positions[i].y, suspects2[i], 125, 185);
-  }
+  let imgW = 160;
+  let imgH = 360;
+
+  // draw image
+  drawLevel2Portrait(positions[i].x, positions[i].y, i, imgW, imgH);
+
+  // store hitbox
+  suspects2[i].hitbox = {
+    x: positions[i].x,
+    y: positions[i].y,
+    w: imgW,
+    h: imgH,
+  };
+
+  // ✅ ADD THIS PART RIGHT HERE
+  push();
+  fill(255);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  text(suspects2[i].name, positions[i].x, positions[i].y - 200);
+  pop();
+}
 
   drawButton(buttons.board, "Board");
   drawButton(buttons.convict, convictMode2 ? "Cancel" : "Convict");
@@ -205,18 +226,13 @@ function drawLevel2Inspect() {
   strokeWeight(4);
   rect(width / 2, height * 0.34, 250, 280, 16);
 
-  if (level2Sprite && level2Sprite.width > 0) {
-    const srcW = level2Sprite.width / 4;
-    const srcH = level2Sprite.height;
-    const sx = suspect.spriteIndex * srcW;
-    const sy = 0;
-
-    image(level2Sprite, width / 2, height * 0.34, 230, 260, sx, sy, srcW, srcH);
-  } else {
-    fill(210);
-    noStroke();
-    rect(width / 2, height * 0.34, 230, 260, 12);
-  }
+  if (suspectFaces2[selected2]) {
+  image(suspectFaces2[selected2], width / 2, height * 0.35, 300, 320);
+} else {
+  fill(210);
+  noStroke();
+  rect(width / 2, height * 0.35, 300, 320, 12);
+}
 
   fill(255);
   noStroke();
@@ -301,6 +317,7 @@ function drawLevel2Board() {
 function level2MousePressed() {
   if (transitionPending) return;
 
+  // close board if open
   if (showBoard2) {
     showBoard2 = false;
     return;
@@ -308,6 +325,9 @@ function level2MousePressed() {
 
   const buttons = getLevel2Buttons();
 
+  // -----------------------------
+  // INTRO
+  // -----------------------------
   if (level2Stage === "intro") {
     if (isOverButton(buttons.begin)) {
       level2Stage = "play";
@@ -315,22 +335,34 @@ function level2MousePressed() {
     return;
   }
 
+  // -----------------------------
+  // LINEUP
+  // -----------------------------
   if (level2Mode === "lineup") {
+    // open board
     if (isOverButton(buttons.board)) {
       showBoard2 = true;
       return;
     }
 
+    // toggle convict mode
     if (isOverButton(buttons.convict)) {
       convictMode2 = !convictMode2;
       message2 = convictMode2 ? "Select the thief." : "";
       return;
     }
 
-    const positions = getLineupPositions(suspects2.length);
-
+    // ✅ CLICK SUSPECTS (FIXED)
     for (let i = 0; i < suspects2.length; i++) {
-      if (isMouseOverLevel2Suspect(positions[i].x, positions[i].y, 125, 185)) {
+      let hb = suspects2[i].hitbox;
+
+      let hovered =
+        mouseX > hb.x - hb.w / 2 &&
+        mouseX < hb.x + hb.w / 2 &&
+        mouseY > hb.y - hb.h / 2 &&
+        mouseY < hb.y + hb.h / 2;
+
+      if (hovered) {
         if (convictMode2) {
           finishCase(
             suspects2[i].isCulprit,
@@ -339,19 +371,26 @@ function level2MousePressed() {
             "level3",
             (msg) => {
               message2 = msg;
-            },
+            }
           );
         } else {
           selected2 = i;
           level2Mode = "inspect";
+
           askMessage2 = questioned2[i] ? suspects2[i].answer : "";
           magnifyMessage2 = "";
           message2 = "";
         }
+
         return;
       }
     }
-  } else {
+  }
+
+  // -----------------------------
+  // INSPECT
+  // -----------------------------
+  else {
     if (isOverButton(buttons.back)) {
       level2Mode = "lineup";
       return;
