@@ -119,21 +119,29 @@ function drawLevel2Portrait(x, y, index, drawW, drawH) {
     else stroke(120, 210, 255);
 
     strokeWeight(4);
-     rect(x, y, drawW * scale, drawH * scale, 12);
+    rect(x, y, drawW * scale, drawH * scale, 12);
   }
 
   pop();
 }
 
 function drawLevel2() {
-  background(58, 72, 88);
+  // Always draw the background first (like Level 1 & 3)
+  if (level2BG) {
+    image(level2BG, 0, 0, width, height);
+  } else {
+    background(58, 72, 88);
+  }
 
+  // Draw the correct stage/mode
   if (level2Stage === "intro") drawLevel2Intro();
   else if (level2Mode === "lineup") drawLevel2Lineup();
   else drawLevel2Inspect();
 
+  // Draw board if open
   if (showBoard2) drawLevel2Board();
 
+  // Footer message
   drawFooterMessage(message2);
 }
 
@@ -156,11 +164,11 @@ function drawLevel2Lineup() {
   const positions = getLineupPositions(suspects2.length);
   const recordedCount = questioned2.filter(Boolean).length;
 
- if (level2BG) {
-  image(level2BG, 0, 0, width, height);
-} else {
-  background(58, 72, 88);
-} 
+  if (level2BG) {
+    image(level2BG, 0, 0, width, height);
+  } else {
+    background(58, 72, 88);
+  }
   drawCaseHeader(
     "Level 2: Jewelry Theft",
     convictMode2
@@ -180,29 +188,29 @@ function drawLevel2Lineup() {
   pop();
 
   for (let i = 0; i < suspects2.length; i++) {
-  let imgW = 160;
-  let imgH = 360;
+    let imgW = 180;
+    let imgH = 420;
 
-  // draw image
-  drawLevel2Portrait(positions[i].x, positions[i].y, i, imgW, imgH);
+    // draw image
+    drawLevel2Portrait(positions[i].x, positions[i].y, i, imgW, imgH);
 
-  // store hitbox
-  suspects2[i].hitbox = {
-    x: positions[i].x,
-    y: positions[i].y,
-    w: imgW,
-    h: imgH,
-  };
+    // store hitbox
+    suspects2[i].hitbox = {
+      x: positions[i].x,
+      y: positions[i].y,
+      w: imgW,
+      h: imgH,
+    };
 
-  // ✅ ADD THIS PART RIGHT HERE
-  push();
-  fill(255);
-  noStroke();
-  textAlign(CENTER, CENTER);
-  textSize(18);
-  text(suspects2[i].name, positions[i].x, positions[i].y - 200);
-  pop();
-}
+    // ✅ ADD THIS PART RIGHT HERE
+    push();
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(18);
+    text(suspects2[i].name, positions[i].x, positions[i].y - 200);
+    pop();
+  }
 
   drawButton(buttons.board, "Board");
   drawButton(buttons.convict, convictMode2 ? "Cancel" : "Convict");
@@ -214,26 +222,22 @@ function drawLevel2Inspect() {
 
   drawCaseHeader(
     "Inspecting " + suspect.name,
-    "Level 1 tools stay here: inspect and magnify. New tool: question.",
+    "Use visual clues, magnify, and question them.",
   );
 
   push();
   imageMode(CENTER);
-  rectMode(CENTER);
 
-  noFill();
-  stroke(255);
-  strokeWeight(4);
-  rect(width / 2, height * 0.34, 250, 280, 16);
-
+  // ✅ SAME AS LEVEL 1 (NO BORDER BOX)
   if (suspectFaces2[selected2]) {
-  image(suspectFaces2[selected2], width / 2, height * 0.35, 300, 320);
-} else {
-  fill(210);
-  noStroke();
-  rect(width / 2, height * 0.35, 300, 320, 12);
-}
+    image(suspectFaces2[selected2], width / 2, height * 0.4, 300, 320);
+  } else {
+    fill(200);
+    noStroke();
+    rect(width / 2, height * 0.4, 300, 320, 12);
+  }
 
+  // TEXT
   fill(255);
   noStroke();
   textAlign(CENTER, CENTER);
@@ -242,7 +246,7 @@ function drawLevel2Inspect() {
   text(
     "Visual read: " + suspect.expression,
     width / 2 - width * 0.3,
-    height * 0.56,
+    height * 0.62,
     width * 0.6,
     60,
   );
@@ -251,7 +255,7 @@ function drawLevel2Inspect() {
     text(
       "Magnify: " + magnifyMessage2,
       width / 2 - width * 0.3,
-      height * 0.66,
+      height * 0.7,
       width * 0.6,
       80,
     );
@@ -261,7 +265,7 @@ function drawLevel2Inspect() {
     text(
       "Statement: " + askMessage2,
       width / 2 - width * 0.3,
-      height * 0.78,
+      height * 0.8,
       width * 0.6,
       90,
     );
@@ -269,6 +273,7 @@ function drawLevel2Inspect() {
 
   pop();
 
+  // BUTTONS
   drawButton(buttons.back, "Back");
   drawButton(buttons.magnify, "Magnify");
   drawButton(buttons.ask, questioned2[selected2] ? "Asked" : "Ask");
@@ -371,7 +376,7 @@ function level2MousePressed() {
             "level3",
             (msg) => {
               message2 = msg;
-            }
+            },
           );
         } else {
           selected2 = i;

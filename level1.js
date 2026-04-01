@@ -145,12 +145,8 @@ function drawLevel1Intro() {
 function drawLevel1Lineup() {
   const buttons = getLevel1Buttons();
 
-  // manually define positions to bring images closer
-  const positions = [
-    { x: width / 2 - 300, y: height * 0.55 }, // Mia
-    { x: width / 2, y: height * 0.55 }, // Derek
-    { x: width / 2 + 300, y: height * 0.55 }, // Luis
-  ];
+  // ✅ SAME positioning system as Level 2 & 3
+  const positions = getLineupPositions(suspects1.length);
 
   drawCaseHeader(
     "Level 1: Bank Robbery",
@@ -160,13 +156,13 @@ function drawLevel1Lineup() {
   );
 
   for (let i = 0; i < suspects1.length; i++) {
-    let imgW = 180; // slightly bigger
+    let imgW = 180;
     let imgH = 420;
 
-    // draw suspect image
+    // draw image (your existing UI stays)
     drawLevel1Portrait(positions[i].x, positions[i].y, i, imgW, imgH);
 
-    // store clickable hitbox
+    // ✅ SAME hitbox system as other levels
     suspects1[i].hitbox = {
       x: positions[i].x,
       y: positions[i].y,
@@ -174,17 +170,17 @@ function drawLevel1Lineup() {
       h: imgH,
     };
 
-    // draw name above the image
+    // ✅ SAME name positioning style
     push();
     fill(255);
     noStroke();
     textAlign(CENTER, CENTER);
     textSize(18);
-    text(suspects1[i].name, positions[i].x, positions[i].y - 230); // higher so images are closer
+    text(suspects1[i].name, positions[i].x, positions[i].y - 230);
     pop();
   }
 
-  // convict button
+  // buttons
   drawButton(buttons.convict, convictMode1 ? "Cancel" : "Convict");
 }
 

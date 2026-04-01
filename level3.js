@@ -115,50 +115,53 @@ function isMouseOverLevel3Suspect(x, y, w, h) {
   );
 }
 
-function drawLevel3Portrait(x, y, suspect, drawW, drawH) {
-  const hovered = isMouseOverLevel3Suspect(x, y, drawW, drawH);
+function drawLevel3Portrait(x, y, index, drawW, drawH) {
+  const hovered =
+    mouseX > x - drawW / 2 &&
+    mouseX < x + drawW / 2 &&
+    mouseY > y - drawH / 2 &&
+    mouseY < y + drawH / 2;
+
+  let scale = hovered ? 1.05 : 1;
 
   push();
   imageMode(CENTER);
   rectMode(CENTER);
 
-  noFill();
-  strokeWeight(4);
-
-  if (convictMode3) stroke(255, 110, 110);
-  else if (hovered) stroke(120, 210, 255);
-  else stroke(255);
-
-  rect(x, y, drawW + 10, drawH + 10, 14);
-
-  if (level3Sprite && level3Sprite.width > 0) {
-    const srcW = level3Sprite.width / 5;
-    const srcH = level3Sprite.height;
-    const sx = suspect.spriteIndex * srcW;
-    const sy = 0;
-
-    image(level3Sprite, x, y, drawW, drawH, sx, sy, srcW, srcH);
+  // IMAGE (same as Level 1)
+  if (suspectImgs3[index]) {
+    image(suspectImgs3[index], x, y, drawW * scale, drawH * scale);
   } else {
-    fill(160);
+    fill(200);
     noStroke();
     rect(x, y, drawW, drawH, 12);
   }
 
-  fill(255);
-  noStroke();
-  textAlign(CENTER, CENTER);
-  textSize(max(12, drawW * 0.12));
-  text(suspect.name, x, y + drawH * 0.62);
+  // HOVER OUTLINE (same as Level 1)
+  if (hovered) {
+    noFill();
+
+    if (convictMode3) stroke(255, 110, 110);
+    else stroke(120, 210, 255);
+
+    strokeWeight(4);
+
+    let outlineH = drawH * scale * 0.96;
+    let outlineW = drawW * scale + 8;
+
+    rect(x, y, outlineW, outlineH, 12);
+  }
+
   pop();
 }
 
 function drawLevel3() {
   background(38, 48, 60);
-if (level3BG) {
-  image(level3BG, 0, 0, width, height);
-} else {
-  background(38, 48, 60);
-}
+  if (level3BG) {
+    image(level3BG, 0, 0, width, height);
+  } else {
+    background(38, 48, 60);
+  }
 
   if (level3Stage === "intro") drawLevel3Intro();
   else if (level3Mode === "lineup") drawLevel3Lineup();
@@ -185,6 +188,70 @@ function drawLevel3Intro() {
   );
 }
 
+function drawLevel3Inspect() {
+  const buttons = getLevel3Buttons();
+  const suspect = suspects3[selected3];
+
+  drawCaseHeader(
+    "Inspecting " + suspect.name,
+    "Magnify, interview, and notebook all work together here.",
+  );
+
+  push();
+  imageMode(CENTER);
+
+  // ✅ SAME AS LEVEL 1 (NO BORDER BOX)
+  if (suspectFaces3[selected3]) {
+    image(suspectFaces3[selected3], width / 2, height * 0.4, 300, 320);
+  } else {
+    fill(200);
+    noStroke();
+    rect(width / 2, height * 0.4, 300, 320, 12);
+  }
+
+  // TEXT
+  fill(255);
+  noStroke();
+  textAlign(CENTER, CENTER);
+
+  textSize(min(width, height) * 0.022);
+  text(
+    "Visual read: " + suspect.appearance,
+    width / 2 - width * 0.3,
+    height * 0.62,
+    width * 0.6,
+    60,
+  );
+
+  if (magnifyMessage3) {
+    text(
+      "Magnify: " + magnifyMessage3,
+      width / 2 - width * 0.3,
+      height * 0.7,
+      width * 0.6,
+      70,
+    );
+  }
+
+  if (askMessage3) {
+    text(
+      "Interview: " + askMessage3,
+      width / 2 - width * 0.3,
+      height * 0.78,
+      width * 0.6,
+      85,
+    );
+  }
+
+  pop();
+
+  // BUTTONS
+  drawButton(buttons.back, "Back");
+  drawButton(buttons.magnify, "Magnify");
+  drawButton(buttons.ask, questioned3[selected3] ? "Asked" : "Interview");
+  drawButton(buttons.notebook, "Notebook");
+}
+
 function drawLevel3Lineup() {
   const buttons = getLevel3Buttons();
   const positions = getLineupPositions(suspects3.length);
@@ -203,85 +270,35 @@ function drawLevel3Lineup() {
   text(`Forensics left: ${forensicsLeft3}`, width / 2, height * 0.22);
   pop();
 
+  // ✅ YOUR LOOP (now in the right place)
   for (let i = 0; i < suspects3.length; i++) {
-    drawLevel3Portrait(positions[i].x, positions[i].y, suspects3[i], 100, 160);
+    let imgW = 180;
+    let imgH = 420;
+
+    drawLevel3Portrait(positions[i].x, positions[i].y, i, imgW, imgH);
+
+    // hitbox
+    suspects3[i].hitbox = {
+      x: positions[i].x,
+      y: positions[i].y,
+      w: imgW,
+      h: imgH,
+    };
+
+    // name
+    push();
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(18);
+    text(suspects3[i].name, positions[i].x, positions[i].y - 190);
+    pop();
   }
 
+  // buttons
   drawButton(buttons.board, "Board");
   drawButton(buttons.forensics, "Forensics");
   drawButton(buttons.convict, convictMode3 ? "Cancel" : "Convict");
-}
-
-function drawLevel3Inspect() {
-  const buttons = getLevel3Buttons();
-  const suspect = suspects3[selected3];
-
-  drawCaseHeader(
-    "Inspecting " + suspect.name,
-    "Magnify, interview, and notebook all work together here.",
-  );
-
-  push();
-  imageMode(CENTER);
-  rectMode(CENTER);
-
-  noFill();
-  stroke(255);
-  strokeWeight(4);
-  rect(width / 2, height * 0.32, 250, 280, 16);
-
-  if (level3Sprite && level3Sprite.width > 0) {
-    const srcW = level3Sprite.width / 5;
-    const srcH = level3Sprite.height;
-    const sx = suspect.spriteIndex * srcW;
-    const sy = 0;
-
-    image(level3Sprite, width / 2, height * 0.32, 230, 260, sx, sy, srcW, srcH);
-  } else {
-    fill(210);
-    noStroke();
-    rect(width / 2, height * 0.32, 230, 260, 12);
-  }
-
-  fill(255);
-  noStroke();
-  textAlign(CENTER, CENTER);
-  textSize(min(width, height) * 0.022);
-
-  text(
-    "Visual read: " + suspect.appearance,
-    width / 2 - width * 0.3,
-    height * 0.5,
-    width * 0.6,
-    60,
-  );
-
-  if (magnifyMessage3) {
-    text(
-      "Magnify: " + magnifyMessage3,
-      width / 2 - width * 0.3,
-      height * 0.6,
-      width * 0.6,
-      70,
-    );
-  }
-
-  if (askMessage3) {
-    text(
-      "Interview: " + askMessage3,
-      width / 2 - width * 0.3,
-      height * 0.72,
-      width * 0.6,
-      85,
-    );
-  }
-
-  pop();
-
-  drawButton(buttons.back, "Back");
-  drawButton(buttons.magnify, "Magnify");
-  drawButton(buttons.ask, questioned3[selected3] ? "Asked" : "Interview");
-  drawButton(buttons.notebook, "Notebook");
 }
 
 function drawNotebook3() {
